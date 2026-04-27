@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VetPlan – Treatment Plan</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<nav>
+  <a href="#" class="nav-logo" id="navLogo"><span>🩺</span> VetPlan</a>
+  <div class="nav-user">
+    <span class="nav-badge" id="navName"></span>
+    <button class="btn-logout" onclick="VetPlan.logout()">Sign out</button>
+  </div>
+</nav>
+
+<div class="page-sm fade-up">
+
+  <a href="#" class="back-link" id="backLink">← Back to Dashboard</a>
+
+  <!-- Notification banner (owner pending view only) -->
+  <div id="pendingBanner" style="display:none;">
+    <div class="notification-banner">
+      ⚠️ <strong>Action required:</strong>&nbsp; This treatment plan is awaiting your approval.
+    </div>
+  </div>
+
+  <!-- Plan header -->
+  <div class="page-header" style="margin-bottom:1.5rem;">
+    <div style="display:flex; align-items:center; gap:1rem;">
+      <div class="pet-avatar" id="petAvatar" style="width:64px;height:64px;font-size:2rem;"></div>
+      <div>
+        <h1 class="page-title" id="planTitle" style="font-size:1.6rem;"></h1>
+        <p class="page-subtitle" id="planMeta"></p>
+      </div>
+    </div>
+    <div id="statusArea"></div>
+  </div>
+
+  <!-- ── PLAN DETAILS ── -->
+  <div class="form-section">
+    <h3 class="section-title">🔬 Diagnosis</h3>
+    <p class="plan-value" id="diagnosisVal"></p>
+  </div>
+
+  <div class="form-section">
+    <h3 class="section-title">💊 Proposed Treatment</h3>
+    <p class="plan-value" id="treatmentVal"></p>
+  </div>
+
+  <div class="form-section">
+    <h3 class="section-title">⚖️ Risks &amp; Benefits</h3>
+    <div class="form-row">
+      <div>
+        <div class="plan-label">Potential Risks / Side Effects</div>
+        <p class="plan-value" id="risksVal"></p>
+      </div>
+      <div>
+        <div class="plan-label">Expected Benefits</div>
+        <p class="plan-value" id="benefitsVal"></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <h3 class="section-title">💰 Cost Estimate</h3>
+    <div class="cost-highlight">
+      <div>
+        <div class="plan-label">Estimated Total</div>
+        <div class="cost-amount" id="costVal"></div>
+      </div>
+      <div style="font-size:0.8rem; color:var(--slate-light); max-width:180px; text-align:right;">
+        Final costs may vary based on treatment response and additional services.
+      </div>
+    </div>
+  </div>
+
+  <!-- Revision note (if exists) -->
+  <div id="revisionNoteWrap" style="display:none;">
+    <div class="form-section" style="border-color:#FECACA; background:#FFF5F5;">
+      <h3 class="section-title" style="color:#B91C1C;">📝 Owner's Revision Request</h3>
+      <p class="plan-value" id="revisionNoteVal"></p>
+    </div>
+  </div>
+
+  <!-- ── OWNER ACTIONS ── -->
+  <div id="ownerActions" style="display:none;">
+
+    <!-- Action buttons -->
+    <div id="actionButtons" class="actions-row">
+      <button class="btn btn-primary" style="flex:1;" onclick="approvePlan()">✅ Approve Treatment Plan</button>
+      <button class="btn btn-danger" onclick="toggleRevision()">✏️ Request Revision</button>
+    </div>
+
+    <!-- Revision form -->
+    <div class="revision-form" id="revisionForm" style="margin-top:1rem;">
+      <div class="form-section" style="border-color:var(--clay); margin-bottom:0.75rem;">
+        <h3 class="section-title" style="color:var(--clay);">✏️ Request a Revision</h3>
+        <div class="form-group">
+          <label for="revisionNote">Describe your concerns or requested changes <span class="required">*</span></label>
+          <textarea id="revisionNote" placeholder="e.g. I'd like to discuss alternative medications, or I have concerns about the cost…"></textarea>
+        </div>
+        <div class="actions-row">
+          <button class="btn btn-clay" onclick="submitRevision()">Submit Revision Request</button>
+          <button class="btn btn-secondary" onclick="toggleRevision()">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── CONFIRMATION SCREENS ── -->
+  <div id="approvedScreen" style="display:none;">
+    <div class="card success-wrap fade-up">
+      <div class="success-icon" style="animation: pulse 1s ease 0.3s both;">✅</div>
+      <h2 class="success-title">Treatment Plan Approved</h2>
+      <p class="success-msg">Your consent has been confirmed and finalized. Your veterinarian has been notified.</p>
+      <a href="owner-dashboard.html" class="btn btn-primary" style="width:auto; display:inline-flex;">← Back to My Pets</a>
+    </div>
+  </div>
+
+  <div id="revisionScreen" style="display:none;">
+    <div class="card success-wrap fade-up">
+      <div class="success-icon">📝</div>
+      <h2 class="success-title">Revision Request Sent</h2>
+      <p class="success-msg">Your veterinarian has been notified and will follow up with you shortly.</p>
+      <a href="owner-dashboard.html" class="btn btn-primary" style="width:auto; display:inline-flex;">← Back to My Pets</a>
+    </div>
+  </div>
+
+  <!-- VET view footer -->
+  <div id="vetFooter" style="display:none; margin-top:1rem;">
+    <div class="actions-row">
+      <a href="vet-dashboard.html" class="btn btn-secondary">← Back to Dashboard</a>
+      <button class="btn btn-primary" id="resubmitBtn" style="display:none;" onclick="showResubmit()">✏️ Edit &amp; Resubmit Plan</button>
+    </div>
+  </div>
+
+  <!-- Resubmit form (vet, revision status only) -->
+  <div id="resubmitForm" style="display:none; margin-top:1.5rem;">
+    <div class="form-section" style="border-color:var(--moss);">
+      <h3 class="section-title">✏️ Revise &amp; Resubmit</h3>
+      <div class="form-group">
+        <label for="rt-treatment">Updated Treatment <span class="required">*</span></label>
+        <textarea id="rt-treatment" style="min-height:80px;"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="rt-risks">Risks / Side Effects</label>
+          <textarea id="rt-risks" style="min-height:60px;"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="rt-benefits">Expected Benefits</label>
+          <textarea id="rt-benefits" style="min-height:60px;"></textarea>
+        </div>
+      </div>
+      <div class="form-group" style="max-width:220px;">
+        <label for="rt-cost">Updated Cost (USD)</label>
+        <input type="number" id="rt-cost" min="0" step="0.01"/>
+      </div>
+      <div class="actions-row" style="margin-top:1rem;">
+        <button class="btn btn-primary" onclick="resubmitPlan()">Send to Owner →</button>
+        <button class="btn btn-secondary" onclick="hideResubmit()">Cancel</button>
+      </div>
+    </div>
+    <div id="resubmitSuccess" style="display:none;">
+      <div class="card success-wrap fade-up">
+        <div class="success-icon">✅</div>
+        <h2 class="success-title">Plan Resubmitted</h2>
+        <p class="success-msg">The updated treatment plan has been sent to the owner for approval.</p>
+        <a href="vet-dashboard.html" class="btn btn-primary" style="width:auto;display:inline-flex;">Back to Dashboard</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="app.js"></script>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const planId = params.get('id');
+  const mode   = params.get('mode'); // 'vet' or 'owner'
+
+  const user = VetPlan.requireLogin();
+  if (user && planId) {
+    const plan = VetPlan.getPlanById(planId);
+
+    if (!plan) {
+      document.querySelector('.page-sm').innerHTML = '<p style="color:var(--slate-light); padding:2rem;">Plan not found.</p>';
+    } else {
+
+      // Nav
+      const isVet = mode === 'vet';
+      document.getElementById('navName').textContent = user.name;
+      document.getElementById('navName').className   = 'nav-badge' + (isVet ? '' : ' owner');
+      document.getElementById('navLogo').querySelector('span').textContent = isVet ? '🩺' : '🐾';
+      document.getElementById('backLink').href = isVet ? 'vet-dashboard.html' : 'owner-dashboard.html';
+
+      // Pet avatar & header
+      document.getElementById('petAvatar').textContent = VetPlan.petEmoji(plan.petSpecies);
+      document.getElementById('planTitle').innerHTML   = `${plan.petName}'s <span>Treatment Plan</span>`;
+      document.getElementById('planMeta').textContent =
+        `${plan.petBreed} · Owner: ${plan.ownerName} · Vet: ${plan.vetName} · Created ${VetPlan.formatDate(plan.createdDate)}`;
+      document.getElementById('statusArea').innerHTML  = VetPlan.statusBadge(plan.status);
+
+      // Plan fields
+      document.getElementById('diagnosisVal').textContent = plan.diagnosis;
+      document.getElementById('treatmentVal').textContent = plan.treatment;
+      document.getElementById('risksVal').textContent     = plan.risks;
+      document.getElementById('benefitsVal').textContent  = plan.benefits;
+      document.getElementById('costVal').textContent      = '$' + parseFloat(plan.cost).toFixed(2);
+
+      // Revision note
+      if (plan.revisionNote) {
+        document.getElementById('revisionNoteWrap').style.display = 'block';
+        document.getElementById('revisionNoteVal').textContent = plan.revisionNote;
+      }
+
+      // Pending banner (owner, pending only)
+      if (!isVet && plan.status === 'pending') {
+        document.getElementById('pendingBanner').style.display = 'block';
+      }
+
+      // Owner actions (only if pending)
+      if (!isVet && plan.status === 'pending') {
+        document.getElementById('ownerActions').style.display = 'block';
+      }
+
+      // Vet footer
+      if (isVet) {
+        document.getElementById('vetFooter').style.display = 'block';
+        if (plan.status === 'revision') {
+          document.getElementById('resubmitBtn').style.display = 'inline-flex';
+        }
+      }
+
+      // Already resolved (owner view, non-pending)
+      if (!isVet && plan.status === 'approved') {
+        document.getElementById('approvedScreen').style.display = 'block';
+      }
+      if (!isVet && plan.status === 'revision') {
+        document.getElementById('revisionScreen').style.display = 'block';
+      }
+    }
+  }
+
+  function approvePlan() {
+    VetPlan.updatePlanStatus(planId, 'approved');
+    document.getElementById('ownerActions').style.display  = 'none';
+    document.getElementById('pendingBanner').style.display = 'none';
+    document.getElementById('approvedScreen').style.display = 'block';
+    document.getElementById('statusArea').innerHTML = VetPlan.statusBadge('approved');
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  }
+
+  function toggleRevision() {
+    const form = document.getElementById('revisionForm');
+    form.classList.toggle('open');
+  }
+
+  function submitRevision() {
+    const note = document.getElementById('revisionNote').value.trim();
+    if (!note) {
+      alert('Please describe your revision request before submitting.');
+      return;
+    }
+    VetPlan.updatePlanStatus(planId, 'revision', note);
+    document.getElementById('ownerActions').style.display   = 'none';
+    document.getElementById('pendingBanner').style.display  = 'none';
+    document.getElementById('revisionScreen').style.display = 'block';
+    document.getElementById('statusArea').innerHTML = VetPlan.statusBadge('revision');
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  }
+
+  function showResubmit() {
+    const plan = VetPlan.getPlanById(planId);
+    document.getElementById('rt-treatment').value = plan.treatment;
+    document.getElementById('rt-risks').value     = plan.risks;
+    document.getElementById('rt-benefits').value  = plan.benefits;
+    document.getElementById('rt-cost').value      = plan.cost;
+    document.getElementById('resubmitForm').style.display = 'block';
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  }
+
+  function hideResubmit() {
+    document.getElementById('resubmitForm').style.display = 'none';
+  }
+
+  function resubmitPlan() {
+    const treatment = document.getElementById('rt-treatment').value.trim();
+    if (!treatment) { alert('Please fill in the updated treatment.'); return; }
+    VetPlan.updatePlan(planId, {
+      treatment: treatment,
+      risks:     document.getElementById('rt-risks').value.trim(),
+      benefits:  document.getElementById('rt-benefits').value.trim(),
+      cost:      parseFloat(document.getElementById('rt-cost').value || 0).toFixed(2),
+      status:    'pending',
+      revisionNote: null,
+    });
+    document.getElementById('resubmitForm').innerHTML = '';
+    document.getElementById('resubmitSuccess').style.display = 'block';
+    document.getElementById('resubmitBtn').style.display = 'none';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+</body>
+</html>

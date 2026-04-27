@@ -1,368 +1,119 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VetPlan – Veterinary Care Platform</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VetPlan – Login</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
 
-<!-- ══════════════ LOGIN PAGE ══════════════ -->
-<div id="login-page" class="page active">
-  <div class="login-card">
-    <div class="login-logo">🐾 VetPlan</div>
-    <div class="login-tagline">Transparent care, every step of the way.</div>
+<div class="login-wrap">
 
-    <h2>Welcome back</h2>
-    <p style="font-size:0.85rem;color:var(--mid);margin-bottom:1rem;">Sign in to continue to your dashboard.</p>
+  <!-- LEFT: Hero panel -->
+  <div class="login-hero">
+    <div class="hero-tag">Veterinary Care Platform</div>
+    <h1 class="hero-title">
+      Transparent care,<br><em>every step</em><br>of the way.
+    </h1>
+    <p class="hero-desc">
+      VetPlan connects veterinarians and pet owners through clear,
+      consent-driven treatment planning — so every decision is informed
+      and every voice is heard.
+    </p>
+  </div>
 
-    <div class="role-select">
-      <div class="role-btn selected" id="role-vet" onclick="selectRole('vet')">
-        <div class="icon">🩺</div>
-        <div class="label">Veterinarian</div>
-        <div class="sub">Create &amp; manage plans</div>
-      </div>
-      <div class="role-btn" id="role-owner" onclick="selectRole('owner')">
-        <div class="icon">🐾</div>
-        <div class="label">Pet Owner</div>
-        <div class="sub">Review &amp; approve plans</div>
+  <!-- RIGHT: Login panel -->
+  <div class="login-panel">
+    <h2 class="login-heading">Welcome back</h2>
+    <p class="login-sub">Sign in to continue to your dashboard.</p>
+
+    <div id="errorMsg" style="display:none; background:#FEE2E2; color:#B91C1C; padding:0.75rem 1rem; border-radius:8px; font-size:0.85rem; margin-bottom:1rem;"></div>
+
+    <!-- Role selection -->
+    <div class="form-group">
+      <label>I am a</label>
+      <div class="role-cards">
+        <div class="role-card" id="card-vet" onclick="selectRole('vet')">
+          <div class="role-icon">🩺</div>
+          <div class="role-name">Veterinarian</div>
+          <div class="role-hint">Create &amp; manage plans</div>
+        </div>
+        <div class="role-card owner-card" id="card-owner" onclick="selectRole('owner')">
+          <div class="role-icon">🐾</div>
+          <div class="role-name">Pet Owner</div>
+          <div class="role-hint">Review &amp; approve plans</div>
+        </div>
       </div>
     </div>
 
     <div class="form-group">
-      <label>Username</label>
-      <input type="text" id="username" placeholder="Enter username" autocomplete="off">
+      <label for="username">Username</label>
+      <input type="text" id="username" placeholder="Enter your username" autocomplete="username" />
     </div>
+
     <div class="form-group">
-      <label>Password</label>
-      <input type="password" id="password" placeholder="Enter password">
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password" />
     </div>
-    <div class="error-msg" id="login-error">⚠ Invalid credentials. Please check your username and password.</div>
 
-    <button class="btn btn-primary" onclick="login()" style="margin-top:1rem;">Sign In →</button>
-
-    <div class="demo-note">
+    <div style="background:var(--moss-pale); border-radius:8px; padding:0.75rem 1rem; margin-bottom:1.5rem; font-size:0.82rem; color:var(--moss);">
       <strong>Demo credentials —</strong><br>
-      Vet: <code>dr.rivera</code> / <code>vet123</code>&nbsp;&nbsp;
+      Vet: <code>dr.rivera</code> / <code>vet123</code><br>
       Pet Owner: <code>jordan</code> / <code>owner123</code>
     </div>
+
+    <button class="btn btn-primary" onclick="handleLogin()">Sign In →</button>
   </div>
-</div>
 
-<!-- ══════════════ VET DASHBOARD ══════════════ -->
-<div id="vet-dashboard-page" class="page">
-  <nav>
-    <span class="nav-logo">🐾 VetPlan</span>
-    <div class="nav-user">
-      <span class="nav-badge badge-vet">Veterinarian</span>
-      <span class="nav-name">Dr. Rivera</span>
-      <span class="logout-btn" onclick="logout()">Sign out</span>
-    </div>
-  </nav>
-  <div class="main">
-    <div class="page-header">
-      <h1>Patient Dashboard</h1>
-      <p>Manage treatment plans for your patients.</p>
-    </div>
-
-    <!-- Stats row -->
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;">
-      <div class="card" style="text-align:center;padding:1.25rem 1rem;">
-        <div style="font-size:1.8rem;font-weight:700;color:var(--teal);" id="stat-total">3</div>
-        <div style="font-size:0.8rem;color:var(--mid);margin-top:0.25rem;">Total Plans</div>
-      </div>
-      <div class="card" style="text-align:center;padding:1.25rem 1rem;">
-        <div style="font-size:1.8rem;font-weight:700;color:#856404;" id="stat-pending">1</div>
-        <div style="font-size:0.8rem;color:var(--mid);margin-top:0.25rem;">Awaiting Review</div>
-      </div>
-      <div class="card" style="text-align:center;padding:1.25rem 1rem;">
-        <div style="font-size:1.8rem;font-weight:700;color:var(--red);" id="stat-revision">1</div>
-        <div style="font-size:0.8rem;color:var(--mid);margin-top:0.25rem;">Revision Requested</div>
-      </div>
-    </div>
-
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:0.75rem;">
-      <div class="tabs" style="margin-bottom:0;border-bottom:none;">
-        <div class="tab active" onclick="vetTab('all',this)">All Plans</div>
-        <div class="tab" onclick="vetTab('pending',this)">Pending</div>
-        <div class="tab" onclick="vetTab('revision',this)">Needs Revision</div>
-        <div class="tab" onclick="vetTab('approved',this)">Approved</div>
-      </div>
-      <button class="btn btn-primary btn-sm" onclick="showPage('vet-create-page')">+ New Plan</button>
-    </div>
-
-    <div class="card">
-      <div class="card-body" id="vet-plan-list" style="padding:0 1.5rem;">
-        <!-- Populated by JS -->
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════ VET CREATE PLAN ══════════════ -->
-<div id="vet-create-page" class="page">
-  <nav>
-    <span class="nav-logo">🐾 VetPlan</span>
-    <div class="nav-user">
-      <span class="nav-badge badge-vet">Veterinarian</span>
-      <span class="nav-name">Dr. Rivera</span>
-      <span class="logout-btn" onclick="logout()">Sign out</span>
-    </div>
-  </nav>
-  <div class="main">
-    <div class="back-link" onclick="showPage('vet-dashboard-page')" style="margin-bottom:1rem;">← Back to Dashboard</div>
-    <div class="page-header">
-      <h1>Create Treatment Plan</h1>
-      <p>Fill out all required fields before submitting to the pet owner.</p>
-    </div>
-
-    <div class="card">
-      <div class="card-body vet-form">
-        <div class="form-row">
-          <div>
-            <label>Patient Name <span class="required">*</span></label>
-            <select id="create-pet">
-              <option value="">— Select patient —</option>
-              <option value="Mochi">🐕 Mochi (Dog)</option>
-              <option value="Biscuit">🐈 Biscuit (Cat)</option>
-              <option value="Nemo">🐠 Nemo (Fish)</option>
-            </select>
-          </div>
-          <div>
-            <label>Owner Name</label>
-            <input type="text" id="create-owner" value="Jordan Lee" readonly style="background:#f5f5f5;">
-          </div>
-        </div>
-        <div class="form-full">
-          <label>Diagnosis <span class="required">*</span></label>
-          <textarea id="create-diagnosis" rows="3" placeholder="Describe the diagnosis in plain language..."></textarea>
-        </div>
-        <div class="form-full">
-          <label>Recommended Treatment <span class="required">*</span></label>
-          <textarea id="create-treatment" rows="4" placeholder="Describe the recommended treatment plan, procedure steps, and timeline..."></textarea>
-        </div>
-        <div class="form-row">
-          <div>
-            <label>Estimated Cost (USD) <span class="required">*</span></label>
-            <input type="number" id="create-cost" placeholder="e.g. 850" min="0">
-          </div>
-          <div>
-            <label>Expected Outcome</label>
-            <input type="text" id="create-outcome" placeholder="e.g. Full recovery in 2–3 weeks">
-          </div>
-        </div>
-        <div class="form-full">
-          <label>Risks &amp; Benefits</label>
-          <textarea id="create-risks" rows="3" placeholder="List any known risks and the expected benefits of this treatment..."></textarea>
-        </div>
-        <div class="form-full">
-          <label>Additional Notes</label>
-          <textarea id="create-notes" rows="2" placeholder="Any additional information for the owner..."></textarea>
-        </div>
-
-        <div id="create-error" style="color:var(--red);font-size:0.85rem;margin-bottom:1rem;display:none;">⚠ Please fill in all required fields.</div>
-
-        <div class="actions-row">
-          <button class="btn btn-primary" onclick="submitPlan()">📤 Submit to Owner</button>
-          <button class="btn btn-outline" onclick="showPage('vet-dashboard-page')">Cancel</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════ VET VIEW PLAN ══════════════ -->
-<div id="vet-view-page" class="page">
-  <nav>
-    <span class="nav-logo">🐾 VetPlan</span>
-    <div class="nav-user">
-      <span class="nav-badge badge-vet">Veterinarian</span>
-      <span class="nav-name">Dr. Rivera</span>
-      <span class="logout-btn" onclick="logout()">Sign out</span>
-    </div>
-  </nav>
-  <div class="main">
-    <div class="back-link" onclick="showPage('vet-dashboard-page')" style="margin-bottom:1rem;">← Back to Dashboard</div>
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem;">
-      <div>
-        <h1 style="font-family:'DM Serif Display',serif;font-size:2rem;" id="vv-title">Treatment Plan</h1>
-        <p style="color:var(--mid);margin-top:0.25rem;" id="vv-meta">—</p>
-      </div>
-      <div id="vv-status-badge"></div>
-    </div>
-
-    <div id="vv-revision-note"></div>
-
-    <div class="detail-grid">
-      <div class="detail-box">
-        <div class="label">Patient</div>
-        <div class="value" id="vv-pet">—</div>
-      </div>
-      <div class="detail-box">
-        <div class="label">Owner</div>
-        <div class="value" id="vv-owner">—</div>
-      </div>
-      <div class="detail-box full">
-        <div class="label">Diagnosis</div>
-        <div class="value" id="vv-diagnosis">—</div>
-      </div>
-      <div class="detail-box full">
-        <div class="label">Recommended Treatment</div>
-        <div class="value" id="vv-treatment">—</div>
-      </div>
-      <div class="detail-box">
-        <div class="label">Estimated Cost</div>
-        <div class="cost" id="vv-cost">—</div>
-      </div>
-      <div class="detail-box">
-        <div class="label">Expected Outcome</div>
-        <div class="value" id="vv-outcome">—</div>
-      </div>
-      <div class="detail-box full" id="vv-risks-box">
-        <div class="label">Risks &amp; Benefits</div>
-        <div class="value" id="vv-risks">—</div>
-      </div>
-    </div>
-
-    <div id="vv-edit-area"></div>
-
-    <div class="actions-row" id="vv-actions"></div>
-  </div>
-</div>
-
-<!-- ══════════════ OWNER DASHBOARD ══════════════ -->
-<div id="owner-dashboard-page" class="page">
-  <nav>
-    <span class="nav-logo">🐾 VetPlan</span>
-    <div class="nav-user">
-      <span class="nav-badge badge-owner">Pet Owner</span>
-      <span class="nav-name">Jordan Lee</span>
-      <span class="logout-btn" onclick="logout()">Sign out</span>
-    </div>
-  </nav>
-  <div class="main">
-    <div class="page-header">
-      <h1>My Pet's Plans</h1>
-      <p>Review and respond to treatment plans from Dr. Rivera.</p>
-    </div>
-
-    <div id="owner-banner"></div>
-
-    <div id="owner-plan-list">
-      <!-- Populated by JS -->
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════ OWNER VIEW PLAN ══════════════ -->
-<div id="owner-view-page" class="page">
-  <nav>
-    <span class="nav-logo">🐾 VetPlan</span>
-    <div class="nav-user">
-      <span class="nav-badge badge-owner">Pet Owner</span>
-      <span class="nav-name">Jordan Lee</span>
-      <span class="logout-btn" onclick="logout()">Sign out</span>
-    </div>
-  </nav>
-  <div class="main">
-    <div class="back-link" onclick="showPage('owner-dashboard-page')" style="margin-bottom:1rem;">← Back to Dashboard</div>
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem;">
-      <div>
-        <h1 style="font-family:'DM Serif Display',serif;font-size:2rem;" id="ov-title">Treatment Plan</h1>
-        <p style="color:var(--mid);margin-top:0.25rem;" id="ov-meta">—</p>
-      </div>
-      <div id="ov-status-badge"></div>
-    </div>
-
-    <div class="detail-grid">
-      <div class="detail-box">
-        <div class="label">Patient</div>
-        <div class="value" id="ov-pet">—</div>
-      </div>
-      <div class="detail-box">
-        <div class="label">Attending Vet</div>
-        <div class="value">Dr. Rivera</div>
-      </div>
-      <div class="detail-box full">
-        <div class="label">Diagnosis</div>
-        <div class="value" id="ov-diagnosis">—</div>
-      </div>
-      <div class="detail-box full">
-        <div class="label">Recommended Treatment</div>
-        <div class="value" id="ov-treatment">—</div>
-      </div>
-      <div class="detail-box">
-        <div class="label">Estimated Cost</div>
-        <div class="cost" id="ov-cost">—</div>
-      </div>
-      <div class="detail-box">
-        <div class="label">Expected Outcome</div>
-        <div class="value" id="ov-outcome">—</div>
-      </div>
-      <div class="detail-box full" id="ov-risks-box">
-        <div class="label">Risks &amp; Benefits</div>
-        <div class="value" id="ov-risks">—</div>
-      </div>
-    </div>
-
-    <div id="ov-action-area"></div>
-  </div>
-</div>
-
-<!-- ══════════════ CONFIRMATION PAGE ══════════════ -->
-<div id="confirm-page" class="page">
-  <nav>
-    <span class="nav-logo">🐾 VetPlan</span>
-    <div class="nav-user">
-      <span class="nav-badge badge-owner">Pet Owner</span>
-      <span class="nav-name">Jordan Lee</span>
-      <span class="logout-btn" onclick="logout()">Sign out</span>
-    </div>
-  </nav>
-  <div class="main" style="display:flex;align-items:center;justify-content:center;flex:1;">
-    <div class="card" style="max-width:480px;width:100%;">
-      <div class="card-body confirm-screen" id="confirm-content">
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════ APPROVE MODAL ══════════════ -->
-<div class="modal-overlay" id="approve-modal">
-  <div class="modal">
-    <h3>✅ Approve Treatment Plan?</h3>
-    <p>By approving, you consent to the proposed treatment for your pet. The veterinary team will be notified immediately and treatment may begin.</p>
-    <div class="sig-box">
-      <p>Your electronic signature</p>
-      <div class="sig-display">Jordan Lee</div>
-      <p style="font-size:0.75rem;color:var(--mid);margin-top:0.4rem;">Signed on <span id="sign-date"></span></p>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-outline" onclick="closeModal('approve-modal')">Cancel</button>
-      <button class="btn btn-success" onclick="confirmApprove()">Confirm Approval</button>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════ REVISION MODAL ══════════════ -->
-<div class="modal-overlay" id="revision-modal">
-  <div class="modal">
-    <h3>📝 Request a Revision</h3>
-    <p>Describe your concerns or questions. The vet will review your notes and submit a revised plan.</p>
-    <div style="margin-bottom:1rem;">
-      <label style="font-size:0.8rem;font-weight:600;color:var(--mid);display:block;margin-bottom:0.4rem;text-transform:uppercase;letter-spacing:0.05em;">Your Notes <span class="required">*</span></label>
-      <textarea id="revision-text" rows="4" placeholder="e.g. I have questions about the estimated cost and whether there is a less invasive option available..."></textarea>
-      <div id="revision-error" style="color:var(--red);font-size:0.8rem;margin-top:0.4rem;display:none;">Please enter your revision notes.</div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-outline" onclick="closeModal('revision-modal')">Cancel</button>
-      <button class="btn btn-warning" onclick="confirmRevision()">Submit Revision Request</button>
-    </div>
-  </div>
 </div>
 
 <script src="app.js"></script>
+<script>
+  let selectedRole = null;
+
+  function selectRole(role) {
+    selectedRole = role;
+    document.getElementById('card-vet').classList.toggle('active', role === 'vet');
+    document.getElementById('card-owner').classList.toggle('active', role === 'owner');
+  }
+
+  function handleLogin() {
+    const user = document.getElementById('username').value.trim();
+    const pass = document.getElementById('password').value.trim();
+    const err  = document.getElementById('errorMsg');
+
+    if (!selectedRole) {
+      err.textContent = 'Please select your role (Veterinarian or Pet Owner).';
+      err.style.display = 'block'; return;
+    }
+    if (!user || !pass) {
+      err.textContent = 'Please enter your username and password.';
+      err.style.display = 'block'; return;
+    }
+
+    const creds = {
+      vet:   { username: 'dr.rivera', password: 'vet123',   name: 'Dr. Rivera', role: 'vet' },
+      owner: { username: 'jordan',    password: 'owner123', name: 'Jordan Lee', role: 'owner' },
+    };
+
+    const valid = creds[selectedRole];
+    if (user !== valid.username || pass !== valid.password) {
+      err.textContent = 'Incorrect username or password. Try the demo credentials above.';
+      err.style.display = 'block'; return;
+    }
+
+    err.style.display = 'none';
+    VetPlan.setUser(valid.role, valid.name);
+    window.location.href = selectedRole === 'vet' ? 'vet-dashboard.html' : 'owner-dashboard.html';
+  }
+
+  // Allow Enter key to submit
+  document.addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
+
+  // If already logged in, redirect
+  const u = VetPlan.getUser();
+  if (u) window.location.href = u.role === 'vet' ? 'vet-dashboard.html' : 'owner-dashboard.html';
+</script>
 </body>
 </html>

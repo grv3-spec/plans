@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VetPlan – My Pets</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<nav>
+  <a href="owner-dashboard.html" class="nav-logo"><span>🐾</span> VetPlan</a>
+  <div class="nav-user">
+    <span class="nav-badge owner" id="navName"></span>
+    <button class="btn-logout" onclick="VetPlan.logout()">Sign out</button>
+  </div>
+</nav>
+
+<div class="page fade-up">
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">My Pets' <span>Plans</span></h1>
+      <p class="page-subtitle">Review and respond to treatment plans from your veterinarian.</p>
+    </div>
+  </div>
+
+  <!-- Notification for pending plans -->
+  <div id="pendingBanner" style="display:none;">
+    <div class="notification-banner">
+      ⚠️ <span id="pendingMsg"></span>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row" id="statsRow"></div>
+
+  <!-- Plan list -->
+  <h2 style="font-family:'Fraunces',serif; font-size:1.2rem; font-weight:400; margin-bottom:1rem; color:var(--charcoal);">Treatment Plans</h2>
+  <div class="patient-grid" id="planGrid"></div>
+
+</div>
+
+<script src="app.js"></script>
+<script>
+  const user = VetPlan.requireLogin('owner');
+  if (user) {
+    document.getElementById('navName').textContent = user.name;
+
+    const plans = VetPlan.getPlans().filter(p => p.ownerId === 'owner');
+    const counts = plans.reduce((acc, p) => { acc[p.status] = (acc[p.status] || 0) + 1; return acc; }, {});
+
+    // Pending banner
+    if (counts.pending) {
+      const banner = document.getElementById('pendingBanner');
+      banner.style.display = 'block';
+      document.getElementById('pendingMsg').textContent =
+        `You have ${counts.pending} treatment plan${counts.pending > 1 ? 's' : ''} awaiting your review and approval.`;
+    }
+
+    document.getElementById('statsRow').innerHTML = `
+      <div class="stat-card">
+        <div class="stat-num">${plans.length}</div>
+        <div class="stat-label">Total Plans</div>
+      </div>
+      <div class="stat-card" style="border-color:${counts.pending ? '#F59E0B' : 'var(--border)'};">
+        <div class="stat-num" style="color:${counts.pending ? '#B45309' : 'var(--moss)'};">${counts.pending || 0}</div>
+        <div class="stat-label">Awaiting Approval</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">${counts.approved || 0}</div>
+        <div class="stat-label">Approved</div>
+      </div>
+    `;
+
+    const grid = document.getElementById('planGrid');
+    if (!plans.length) {
+      grid.innerHTML = `<div class="empty-state"><div class="empty-icon">🐾</div><p>No treatment plans yet. Your vet will send one when ready.</p></div>`;
+    } else {
+      grid.innerHTML = plans.map(p => `
+        <div class="patient-card" onclick="window.location.href='review-plan.html?id=${p.id}&mode=owner'" style="cursor:pointer;">
+          <div class="patient-info">
+            <div class="pet-avatar">${VetPlan.petEmoji(p.petSpecies)}</div>
+            <div>
+              <div class="pet-name">${p.petName}</div>
+              <div class="pet-meta">${p.petBreed} &bull; Dr: ${p.vetName} &bull; ${VetPlan.formatDate(p.createdDate)}</div>
+              <div style="margin-top:0.4rem; font-size:0.82rem; color:var(--slate);">${p.diagnosis}</div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.75rem; flex-shrink:0;">
+            ${VetPlan.statusBadge(p.status)}
+            <span style="color:var(--slate-light); font-size:1.1rem;">›</span>
+          </div>
+        </div>
+      `).join('');
+    }
+  }
+</script>
+</body>
+</html>

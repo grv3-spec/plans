@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VetPlan – Vet Dashboard</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<nav>
+  <a href="vet-dashboard.html" class="nav-logo"><span>🩺</span> VetPlan</a>
+  <div class="nav-user">
+    <span class="nav-badge" id="navName"></span>
+    <button class="btn-logout" onclick="VetPlan.logout()">Sign out</button>
+  </div>
+</nav>
+
+<div class="page fade-up">
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Good morning, <span id="vetName"></span></h1>
+      <p class="page-subtitle">Here's a summary of your active treatment plans.</p>
+    </div>
+    <a href="create-plan.html" class="btn btn-primary" style="width:auto;">+ New Treatment Plan</a>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row" id="statsRow"></div>
+
+  <!-- Patient list -->
+  <h2 style="font-family:'Fraunces',serif; font-size:1.2rem; font-weight:400; margin-bottom:1rem; color:var(--charcoal);">All Patients</h2>
+  <div class="patient-grid" id="patientGrid"></div>
+
+</div>
+
+<script src="app.js"></script>
+<script>
+  const user = VetPlan.requireLogin('vet');
+  if (user) {
+    document.getElementById('navName').textContent = user.name;
+    document.getElementById('vetName').textContent = user.name.replace('Dr. ', 'Dr. ');
+
+    const plans = VetPlan.getPlans();
+    const counts = plans.reduce((acc, p) => { acc[p.status] = (acc[p.status] || 0) + 1; return acc; }, {});
+
+    document.getElementById('statsRow').innerHTML = `
+      <div class="stat-card">
+        <div class="stat-num">${plans.length}</div>
+        <div class="stat-label">Total Plans</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">${counts.pending || 0}</div>
+        <div class="stat-label">Awaiting Approval</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">${counts.revision || 0}</div>
+        <div class="stat-label">Revision Requested</div>
+      </div>
+    `;
+
+    const grid = document.getElementById('patientGrid');
+    if (!plans.length) {
+      grid.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><p>No treatment plans yet. Create your first one!</p></div>`;
+    } else {
+      grid.innerHTML = plans.map(p => `
+        <div class="patient-card" onclick="window.location.href='review-plan.html?id=${p.id}&mode=vet'" style="cursor:pointer;">
+          <div class="patient-info">
+            <div class="pet-avatar">${VetPlan.petEmoji(p.petSpecies)}</div>
+            <div>
+              <div class="pet-name">${p.petName}</div>
+              <div class="pet-meta">${p.petBreed} &bull; Owner: ${p.ownerName} &bull; ${VetPlan.formatDate(p.createdDate)}</div>
+              <div style="margin-top:0.4rem; font-size:0.82rem; color:var(--slate);">${p.diagnosis}</div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.75rem; flex-shrink:0;">
+            ${VetPlan.statusBadge(p.status)}
+            <span style="color:var(--slate-light); font-size:1.1rem;">›</span>
+          </div>
+        </div>
+      `).join('');
+    }
+  }
+</script>
+</body>
+</html>
